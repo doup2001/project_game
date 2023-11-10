@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define PORT 12346
+#define PORT 12345
 #define MAX_PLAYERS 10
 
 struct Player {
@@ -150,27 +150,34 @@ void startGame_cl(int server_socket) {
 
 
 void displayRecords_cl(int server_socket) {
-    
     // 서버에서 플레이어 기록 받음
-    struct Player players[MAX_PLAYERS];
-    recv(server_socket, players, sizeof(players), 0);
-
-    // BEST 플레이어와 평균 시도 횟수 받음
     int minAttempts;
     char minAttemptsPlayer[20];
-
-    recv(server_socket, &minAttempts, sizeof(int), 0);
-    recv(server_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
-
-    printf("\n");
-    printf("BEST 플레이어 / 횟수 : %s / %d\n", minAttemptsPlayer, minAttempts);
-    printf("--------------------\n");
-
     float averageAttempts;
-    recv(server_socket, &averageAttempts, sizeof(float), 0);
+    int noPlayers;  // 수정: 플레이어가 없는 경우를 체크하기 위한 변수
 
-    printf("평균 시도 횟수: %.2f\n", averageAttempts);
+    // 서버로부터 데이터를 받음
+    recv(server_socket, &noPlayers, sizeof(int), 0);
+
+    if (noPlayers == 0) {
+        // 플레이어가 없는 경우 메시지 출력
+        printf("\n");
+        printf("플레이어가 없습니다.\n");
+    } else {
+        // 플레이어가 있는 경우에만 나머지 데이터를 받음
+        recv(server_socket, &minAttempts, sizeof(int), 0);
+        recv(server_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
+        recv(server_socket, &averageAttempts, sizeof(float), 0);
+
+        // BEST 플레이어와 평균 시도 횟수 출력
+        printf("\n");
+        printf("BEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
+        printf("--------------------\n");
+        printf("평균 시도 횟수: %.2f\n", averageAttempts);
+    }
 }
+
+
 
 void SearchMyRecord_cl(int server_socket) {
     // 사용자에게 찾을 플레이어 이름 입력 받음

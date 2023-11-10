@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-#define PORT 12346
+#define PORT 12345
 #define MAX_PLAYERS 10
 
 struct Player {
@@ -157,15 +157,15 @@ void startGame_sv(int client_socket) {
 
 void displayRecords_sv(int client_socket) {
     // 서버에서 플레이어 기록 받음
-    int minAttempts = players[0].attempts;
+    int minAttempts = (numPlayers > 0) ? players[0].attempts : 0;
     int totalAttempts = 0;
-    char minAttemptsPlayer[20];  // 최소 시도를 기록한 플레이어 아이디 저장
+    char minAttemptsPlayer[20] = "";
 
-    strcpy(minAttemptsPlayer, players[0].name);
+    if (numPlayers > 0) {
+        strcpy(minAttemptsPlayer, players[0].name);
+    }
 
     for (int i = 0; i < numPlayers; i++) {
-        // printf("이름: %s, 시도 횟수: %d\n", players[i].name, players[i].attempts);
-
         // 최소 시도 횟수와 플레이어 아이디를 업데이트합니다.
         if (players[i].attempts < minAttempts) {
             minAttempts = players[i].attempts;
@@ -177,8 +177,9 @@ void displayRecords_sv(int client_socket) {
     }
 
     // BEST 플레이어와 평균 시도 횟수를 계산합니다.
-    float averageAttempts = (float)totalAttempts / numPlayers;
+float averageAttempts = (numPlayers > 0) ? (float)totalAttempts / numPlayers : 0;
 
+if (numPlayers > 0) {
     // BEST 플레이어와 평균 시도 횟수를 클라이언트에 전송합니다.
     send(client_socket, &minAttempts, sizeof(int), 0);
     send(client_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
@@ -188,7 +189,18 @@ void displayRecords_sv(int client_socket) {
     printf("BEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
     printf("--------------------\n");
     printf("평균 시도 횟수: %.2f\n", averageAttempts);
+} else {
+    // 클라이언트에게 플레이어가 없다는 메시지를 전송합니다.
+    int noPlayers = 0;
+    send(client_socket, &noPlayers, sizeof(int), 0);
+
+    printf("\n");
+    printf("플레이어가 없습니다.\n");
 }
+
+}
+
+
 
 
 void SearchMyRecord_sv(int client_socket) {
