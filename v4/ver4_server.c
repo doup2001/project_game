@@ -7,7 +7,7 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-#define PORT 12345
+#define PORT 12346
 #define MAX_PLAYERS 10
 
 struct Player {
@@ -146,59 +146,63 @@ void startGame_sv(int client_socket) {
         if (strike == 3) {
             printf("[Client] 정답\n");
             players[numPlayers].attempts = attempts;
-            send(client_socket, &correct_message, sizeof(char), 0);
             numPlayers++;
             break;
-        } 
+        }else if (attempts == 9) {
+            // 플레이어가 9번 시도한 후에도 정답을 맞추지 못한 경우
+            printf("[Client] 시도 횟수 초과 - 정답을 맞추지 못했습니다.\n");
+            players[numPlayers].attempts = 9;  // 플레이어의 시도 횟수를 9로 설정
+            numPlayers++;
+            break;
+        }
+         
     }
         
 }   
        
 
 void displayRecords_sv(int client_socket) {
-    // 서버에서 플레이어 기록 받음
-    int minAttempts = (numPlayers > 0) ? players[0].attempts : 0;
-    int totalAttempts = 0;
-    char minAttemptsPlayer[20] = "";
 
-    if (numPlayers > 0) {
-        strcpy(minAttemptsPlayer, players[0].name);
-    }
+        int minAttempts = 0;
+        char minAttemptsPlayer[20] ="";
+        int totalAttempts = 0;
+        float averageAttempts = 0.00;
+    // 플레이어가 없는 경우
+    if (numPlayers == 0) {
+        printf("플레이어가 없습니다.\n");
+        int minAttempts = 0;
+        char minAttemptsPlayer[20] ="";
+        int totalAttempts = 0;
+        float averageAttempts = 0.00;
+    } else{
 
-    for (int i = 0; i < numPlayers; i++) {
-        // 최소 시도 횟수와 플레이어 아이디를 업데이트합니다.
+    // 플레이어가 있는 경우
+    int minAttempts = players[0].attempts;
+    char minAttemptsPlayer[20];
+    strcpy(minAttemptsPlayer, players[0].name);
+    int totalAttempts = minAttempts;
+
+    for (int i = 1; i < numPlayers; i++) {
         if (players[i].attempts < minAttempts) {
             minAttempts = players[i].attempts;
             strcpy(minAttemptsPlayer, players[i].name);
         }
-
-        // 총 시도 횟수를 누적합니다.
         totalAttempts += players[i].attempts;
     }
 
-    // BEST 플레이어와 평균 시도 횟수를 계산합니다.
-float averageAttempts = (numPlayers > 0) ? (float)totalAttempts / numPlayers : 0;
+    float averageAttempts = (float)totalAttempts / numPlayers;
+    }
 
-if (numPlayers > 0) {
-    // BEST 플레이어와 평균 시도 횟수를 클라이언트에 전송합니다.
+    // 데이터를 클라이언트에게 전송
+    send(client_socket, minAttemptsPlayer, strlen(minAttemptsPlayer) + 1, 0);
     send(client_socket, &minAttempts, sizeof(int), 0);
-    send(client_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
     send(client_socket, &averageAttempts, sizeof(float), 0);
 
-    printf("\n");
-    printf("BEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
+    printf("\nBEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
     printf("--------------------\n");
     printf("평균 시도 횟수: %.2f\n", averageAttempts);
-} else {
-    // 클라이언트에게 플레이어가 없다는 메시지를 전송합니다.
-    int noPlayers = 0;
-    send(client_socket, &noPlayers, sizeof(int), 0);
-
-    printf("\n");
-    printf("플레이어가 없습니다.\n");
 }
 
-}
 
 
 

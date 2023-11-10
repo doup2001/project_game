@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define PORT 12345
+#define PORT 12346
 #define MAX_PLAYERS 10
 
 struct Player {
@@ -81,7 +81,7 @@ void displayMenu_cl() {
     printf("\n");
     printf("메뉴를 선택하세요:\n");
     printf("1. 게임 시작\n");
-    printf("2. 최고값 / 평균값\n");
+    printf("2. 최소값 / 평균값\n");
     printf("3. 나의 기록 검색\n");
     printf("4. 게임 종료\n");
 }
@@ -137,12 +137,19 @@ void startGame_cl(int server_socket) {
         if (strike == 3) {
             printf("[Server] : 정답\n");
             numPlayers++;
-
+            
             // 게임 종료 시 randValues 초기화
             memset(randValues, 0, sizeof(randValues));
 
             break;
+        } else if (attempts == 9) {
+            printf("[Server] : 시도 횟수 초과 - 정답을 맞추지 못했습니다.\n");
+            numPlayers++;
+            // 오답 메시지 출력 후 게임 종료 시 randValues 초기화
+            memset(randValues, 0, sizeof(randValues));
+             break;
         }
+
     }
 
     system("clear");
@@ -150,32 +157,30 @@ void startGame_cl(int server_socket) {
 
 
 void displayRecords_cl(int server_socket) {
-    // 서버에서 플레이어 기록 받음
     int minAttempts;
     char minAttemptsPlayer[20];
     float averageAttempts;
-    int noPlayers;  // 수정: 플레이어가 없는 경우를 체크하기 위한 변수
 
-    // 서버로부터 데이터를 받음
-    recv(server_socket, &noPlayers, sizeof(int), 0);
+    // 플레이어가 없는 경우
+    recv(server_socket, &minAttempts, sizeof(int), 0);
 
-    if (noPlayers == 0) {
-        // 플레이어가 없는 경우 메시지 출력
-        printf("\n");
-        printf("플레이어가 없습니다.\n");
-    } else {
-        // 플레이어가 있는 경우에만 나머지 데이터를 받음
-        recv(server_socket, &minAttempts, sizeof(int), 0);
+    // 플레이어가 있는 경우에만 나머지 데이터를 받음
+    if (minAttempts > 0) {
         recv(server_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
         recv(server_socket, &averageAttempts, sizeof(float), 0);
 
         // BEST 플레이어와 평균 시도 횟수 출력
-        printf("\n");
-        printf("BEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
+        printf("\nBEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
         printf("--------------------\n");
         printf("평균 시도 횟수: %.2f\n", averageAttempts);
+    } else {
+        // 플레이어가 없는 경우 메시지 출력
+        printf("\n플레이어가 없습니다.\n");
     }
 }
+
+
+
 
 
 
