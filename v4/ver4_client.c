@@ -18,7 +18,6 @@ int numPlayers = 0;  // 현재까지의 플레이어 수
 
 void displayMenu_cl();
 void startGame_cl(int server_socket);
-void displayRecords_cl(int server_socket);
 void SearchMyRecord_cl(int server_socket);
 
 int main() {
@@ -59,12 +58,9 @@ while (1) {
             startGame_cl(server_socket);
             break;
         case 2:
-            displayRecords_cl(server_socket);
-            break;
-        case 3:
             SearchMyRecord_cl(server_socket);
             break;
-        case 4:
+        case 3:
             close(server_socket);
             exit(0);
         default:
@@ -81,9 +77,8 @@ void displayMenu_cl() {
     printf("\n");
     printf("메뉴를 선택하세요:\n");
     printf("1. 게임 시작\n");
-    printf("2. 최소값 / 평균값\n");
-    printf("3. 나의 기록 검색\n");
-    printf("4. 게임 종료\n");
+    printf("2. 나의 기록 검색\n");
+    printf("3. 게임 종료\n");
 }
 
 void startGame_cl(int server_socket) {
@@ -112,7 +107,7 @@ void startGame_cl(int server_socket) {
     recv(server_socket, &randValues, sizeof(randValues), 0);
 
     int attempts;
-
+    printf("입력형식 000\n");
     for (attempts = 1; attempts < 10; attempts++) {
         printf("%d 번째 시도 - 값 입력 (또는 'exit' 입력하여 종료): ", attempts);
         fflush(stdout);
@@ -156,21 +151,6 @@ void startGame_cl(int server_socket) {
 }
 
 
-void displayRecords_cl(int server_socket) {
-    int minAttempts;
-    char minAttemptsPlayer[20];
-    float averageAttempts;
-
-    // 서버로부터 데이터 수신
-    recv(server_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
-    recv(server_socket, &minAttempts, sizeof(int), 0);
-    recv(server_socket, &averageAttempts, sizeof(float), 0);
-
-    // BEST 플레이어와 평균 시도 횟수 출력
-    printf("\nBEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
-    printf("--------------------\n");
-    printf("평균 시도 횟수: %.2f\n", averageAttempts);
-}
 
 
 

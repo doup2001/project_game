@@ -19,7 +19,7 @@ struct Player players[MAX_PLAYERS];
 int numPlayers = 0;
 
 void startGame_sv(int client_socket);
-void displayRecords_sv(int client_socket);
+void generateUniqueRandomValues(int arr[], int size);
 void SearchMyRecord_sv(int client_socket);
 void closeConnection_sv(int server_socket, int client_socket);
 
@@ -75,12 +75,9 @@ int main() {
             startGame_sv(client_socket);
             break;
         case 2:
-            displayRecords_sv(client_socket);
-            break;
-        case 3:
             SearchMyRecord_sv(client_socket);
             break;
-        case 4:
+        case 3:
             closeConnection_sv(server_socket, client_socket);
             break;
         default:
@@ -107,9 +104,7 @@ void startGame_sv(int client_socket) {
 
     // 클라이언트에게 랜덤 값을 전송
     int randValues[3];
-    randValues[0] = rand() % 10;
-    randValues[1] = rand() % 10;
-    randValues[2] = rand() % 10;
+    generateUniqueRandomValues(randValues, 3);
     printf("[Server] 숫자야구 - 정답은 %d %d %d \n",randValues[0],randValues[1],randValues[2]);
     // 서버에 값 전달
     send(client_socket, randValues, sizeof(randValues), 0);
@@ -162,39 +157,6 @@ void startGame_sv(int client_socket) {
 }   
 
 
-       
-
-void displayRecords_sv(int client_socket) {
-    int minAttempts = 0;
-    char minAttemptsPlayer[20] = "";
-    int totalAttempts = 0;
-    float averageAttempts = 0.00;
-
-    // 플레이어가 있는 경우
-    if (numPlayers > 0) {
-        minAttempts = players[0].attempts;
-        strcpy(minAttemptsPlayer, players[0].name);
-        totalAttempts = minAttempts;
-
-        for (int i = 1; i < numPlayers; i++) {
-            if (players[i].attempts < minAttempts) {
-                minAttempts = players[i].attempts;
-                strcpy(minAttemptsPlayer, players[i].name);
-            }
-            totalAttempts += players[i].attempts;
-        }
-
-        averageAttempts = (float)totalAttempts / numPlayers;
-    }
-
-    printf("\nBEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
-    printf("--------------------\n");
-    printf("평균 시도 횟수: %.2f\n", averageAttempts);
-}
-
-
-
-
 
 
 void SearchMyRecord_sv(int client_socket) {
@@ -222,6 +184,27 @@ void SearchMyRecord_sv(int client_socket) {
         strcpy(notFoundPlayer.name, "Not Found");
         notFoundPlayer.attempts = -1;  // 어떤 값을 넣을지는 상황에 따라 다름
         send(client_socket, &notFoundPlayer, sizeof(struct Player), 0);
+    }
+}
+
+void generateUniqueRandomValues(int arr[], int size) {
+    for (int i = 0; i < size; i++) {
+        int uniqueValue;
+        do {
+            uniqueValue = rand() % 10;
+            int isUnique = 1;
+            for (int j = 0; j < i; j++) {
+                if (arr[j] == uniqueValue) {
+                    isUnique = 0;
+                    break;
+                }
+            }
+            if (isUnique) {
+                break;
+            }
+        } while (1);
+
+        arr[i] = uniqueValue;
     }
 }
 
