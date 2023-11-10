@@ -8,7 +8,7 @@
 #define MAX_PLAYERS 10
 
 struct Player {
-    char name[20];
+    char name[40];
     int attempts;
 };
 
@@ -106,20 +106,16 @@ void startGame_cl(int server_socket) {
         printf("플레이어 기록이 가득 찼습니다. 더 이상 추가할 수 없습니다.\n");
         return;
     }
-     
-    char input[20];
 
     // 서버에서 랜덤 값을 받음
     int randValues[3];
     recv(server_socket, &randValues, sizeof(randValues), 0);
 
     int attempts;
-    // recv(server_socket, &attempts, sizeof(randValues), 0);
 
     for (attempts = 1; attempts <= 10; attempts++) {
         printf("%d 번째 시도 - 값 입력 (또는 'exit' 입력하여 종료): ", attempts);
         fflush(stdout);
-
 
         // 사용자 입력 받기
         int u1, u2, u3;
@@ -141,13 +137,17 @@ void startGame_cl(int server_socket) {
         if (strike == 3) {
             printf("[Server] : 정답\n");
             numPlayers++;
+
+            // 게임 종료 시 randValues 초기화
+            memset(randValues, 0, sizeof(randValues));
+
             break;
         }
-        
     }
 
     system("clear");
 }
+
 
 void displayRecords_cl(int server_socket) {
     
@@ -173,8 +173,6 @@ void displayRecords_cl(int server_socket) {
 }
 
 void SearchMyRecord_cl(int server_socket) {
-    // 콘솔 창 새로
-
     // 사용자에게 찾을 플레이어 이름 입력 받음
     char searchName[20];
     printf("\n");
@@ -187,6 +185,7 @@ void SearchMyRecord_cl(int server_socket) {
     // 서버에서 플레이어 정보 받음
     struct Player searchResult;
     recv(server_socket, &searchResult, sizeof(struct Player), 0);
+
     printf("\n");
     if (strcmp(searchResult.name, "Not Found") == 0) {
         printf("찾는 플레이어가 없습니다.\n");

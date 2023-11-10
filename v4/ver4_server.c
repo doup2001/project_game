@@ -116,7 +116,7 @@ void startGame_sv(int client_socket) {
     // 게임 로직 구현
     int attempts;
     
-    for (attempts = 1; attempts <= 10; attempts++) {
+    for (attempts = 1; attempts < 10; attempts++) {
         int strike = 0;
         int ball = 0;
         // 사용자 입력 받기
@@ -176,20 +176,20 @@ void displayRecords_sv(int client_socket) {
         totalAttempts += players[i].attempts;
     }
 
-    // BEST 플레이어와 평균 시도 횟수 받음
-   
+    // BEST 플레이어와 평균 시도 횟수를 계산합니다.
+    float averageAttempts = (float)totalAttempts / numPlayers;
+
+    // BEST 플레이어와 평균 시도 횟수를 클라이언트에 전송합니다.
     send(client_socket, &minAttempts, sizeof(int), 0);
     send(client_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
-    printf("\n");
-    printf("BEST 플레이어 / 횟수 : %s / %d\n", minAttemptsPlayer, minAttempts);
-    printf("--------------------\n");
-
-    float averageAttempts;
     send(client_socket, &averageAttempts, sizeof(float), 0);
-    printf("\n");
-    printf("평균 시도 횟수: %.2f\n", averageAttempts);
 
+    printf("\n");
+    printf("BEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
+    printf("--------------------\n");
+    printf("평균 시도 횟수: %.2f\n", averageAttempts);
 }
+
 
 void SearchMyRecord_sv(int client_socket) {
     // 클라이언트에게 찾을 플레이어 이름 요청
@@ -198,10 +198,11 @@ void SearchMyRecord_sv(int client_socket) {
 
     int found = 0;
     printf("\n");
+
     for (int i = 0; i < numPlayers; i++) {
         if (strcmp(players[i].name, searchName) == 0) {
             // 찾은 플레이어 정보 전송
-            printf("[Client] 요청한 인물의 이름 : %s / 점수 : %d\n",players[i].name,players[i].attempts);
+            printf("[Server] 찾은 플레이어 - 이름: %s, 시도 횟수: %d\n", players[i].name, players[i].attempts);
             send(client_socket, &players[i], sizeof(struct Player), 0);
             found = 1;
             break;
@@ -210,12 +211,14 @@ void SearchMyRecord_sv(int client_socket) {
 
     if (!found) {
         // 플레이어를 찾지 못한 경우
-        printf("\n");
+        printf("[Server] 찾는 플레이어가 없습니다.\n");
         struct Player notFoundPlayer;
-        strcpy(notFoundPlayer.name, "찾는 플레이어가 없습니다.");
+        strcpy(notFoundPlayer.name, "Not Found");
+        notFoundPlayer.attempts = -1;  // 어떤 값을 넣을지는 상황에 따라 다름
         send(client_socket, &notFoundPlayer, sizeof(struct Player), 0);
     }
 }
+
 
 void closeConnection_sv(int server_socket, int client_socket) {
     // 클라이언트와의 연결 종료
