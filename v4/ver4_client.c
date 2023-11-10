@@ -113,7 +113,7 @@ void startGame_cl(int server_socket) {
 
     int attempts;
 
-    for (attempts = 1; attempts <= 10; attempts++) {
+    for (attempts = 1; attempts < 10; attempts++) {
         printf("%d 번째 시도 - 값 입력 (또는 'exit' 입력하여 종료): ", attempts);
         fflush(stdout);
 
