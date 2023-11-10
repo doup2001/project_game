@@ -94,7 +94,8 @@ int main() {
 }
 
 void startGame_sv(int client_socket) {
-    
+        srand((unsigned int)time(NULL));
+
     // 클라이언트 게임 시작 메세지 전달
     recv(client_socket, players[numPlayers].name, sizeof(players[numPlayers].name), 0);
     char startMessage[100];
@@ -159,49 +160,38 @@ void startGame_sv(int client_socket) {
     }
         
 }   
+
+
        
 
 void displayRecords_sv(int client_socket) {
-
-        int minAttempts = 0;
-        char minAttemptsPlayer[20] ="";
-        int totalAttempts = 0;
-        float averageAttempts = 0.00;
-    // 플레이어가 없는 경우
-    if (numPlayers == 0) {
-        printf("플레이어가 없습니다.\n");
-        int minAttempts = 0;
-        char minAttemptsPlayer[20] ="";
-        int totalAttempts = 0;
-        float averageAttempts = 0.00;
-    } else{
+    int minAttempts = 0;
+    char minAttemptsPlayer[20] = "";
+    int totalAttempts = 0;
+    float averageAttempts = 0.00;
 
     // 플레이어가 있는 경우
-    int minAttempts = players[0].attempts;
-    char minAttemptsPlayer[20];
-    strcpy(minAttemptsPlayer, players[0].name);
-    int totalAttempts = minAttempts;
+    if (numPlayers > 0) {
+        minAttempts = players[0].attempts;
+        strcpy(minAttemptsPlayer, players[0].name);
+        totalAttempts = minAttempts;
 
-    for (int i = 1; i < numPlayers; i++) {
-        if (players[i].attempts < minAttempts) {
-            minAttempts = players[i].attempts;
-            strcpy(minAttemptsPlayer, players[i].name);
+        for (int i = 1; i < numPlayers; i++) {
+            if (players[i].attempts < minAttempts) {
+                minAttempts = players[i].attempts;
+                strcpy(minAttemptsPlayer, players[i].name);
+            }
+            totalAttempts += players[i].attempts;
         }
-        totalAttempts += players[i].attempts;
-    }
 
-    float averageAttempts = (float)totalAttempts / numPlayers;
+        averageAttempts = (float)totalAttempts / numPlayers;
     }
-
-    // 데이터를 클라이언트에게 전송
-    send(client_socket, minAttemptsPlayer, strlen(minAttemptsPlayer) + 1, 0);
-    send(client_socket, &minAttempts, sizeof(int), 0);
-    send(client_socket, &averageAttempts, sizeof(float), 0);
 
     printf("\nBEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
     printf("--------------------\n");
     printf("평균 시도 횟수: %.2f\n", averageAttempts);
 }
+
 
 
 

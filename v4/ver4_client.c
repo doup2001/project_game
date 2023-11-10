@@ -161,23 +161,17 @@ void displayRecords_cl(int server_socket) {
     char minAttemptsPlayer[20];
     float averageAttempts;
 
-    // 플레이어가 없는 경우
+    // 서버로부터 데이터 수신
+    recv(server_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
     recv(server_socket, &minAttempts, sizeof(int), 0);
+    recv(server_socket, &averageAttempts, sizeof(float), 0);
 
-    // 플레이어가 있는 경우에만 나머지 데이터를 받음
-    if (minAttempts > 0) {
-        recv(server_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
-        recv(server_socket, &averageAttempts, sizeof(float), 0);
-
-        // BEST 플레이어와 평균 시도 횟수 출력
-        printf("\nBEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
-        printf("--------------------\n");
-        printf("평균 시도 횟수: %.2f\n", averageAttempts);
-    } else {
-        // 플레이어가 없는 경우 메시지 출력
-        printf("\n플레이어가 없습니다.\n");
-    }
+    // BEST 플레이어와 평균 시도 횟수 출력
+    printf("\nBEST 플레이어 / 횟수: %s / %d\n", minAttemptsPlayer, minAttempts);
+    printf("--------------------\n");
+    printf("평균 시도 횟수: %.2f\n", averageAttempts);
 }
+
 
 
 
