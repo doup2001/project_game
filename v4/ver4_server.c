@@ -7,21 +7,21 @@
 #include <arpa/inet.h>
 #include <time.h>
 
-#define PORT 12345
+#define PORT 12346
 #define MAX_PLAYERS 10
 
 struct Player {
-    char name[20];
+    char name[40];
     int attempts;
 };
 
 struct Player players[MAX_PLAYERS];
 int numPlayers = 0;
 
-void startGame(int client_socket);
-void displayRecords(int client_socket);
-void SearchMyRecord(int client_socket);
-void closeConnection(int server_socket, int client_socket);
+void startGame_sv(int client_socket);
+void displayRecords_sv(int client_socket);
+void SearchMyRecord_sv(int client_socket);
+void closeConnection_sv(int server_socket, int client_socket);
 
 int main() {
     int server_socket, client_socket;
@@ -65,35 +65,35 @@ int main() {
 
     printf("클라이언트 연결됨\n");
 
+    while (1) {
     int choice;
 
-    while (1) {
-        // 클라이언트가 선택한 메뉴를 받아옴
-        recv(client_socket, &choice, sizeof(int), 0);
+    recv(client_socket, &choice, sizeof(int), 0);
 
-        switch (choice) {
-            case 1:
-                startGame(client_socket);
-                break;
-            case 2:
-                displayRecords(client_socket);
-                break;
-            case 3:
-                SearchMyRecord(client_socket);
-                break;
-            case 4:
-                closeConnection(server_socket, client_socket);
-                break;
-            default:
-                printf("올바른 선택이 아닙니다. 다시 선택하세요.\n");
-                break;
-        }
+    switch (choice) {
+        case 1:
+            startGame_sv(client_socket);
+            break;
+        case 2:
+            displayRecords_sv(client_socket);
+            break;
+        case 3:
+            SearchMyRecord_sv(client_socket);
+            break;
+        case 4:
+            closeConnection_sv(server_socket, client_socket);
+            break;
+        default:
+            printf("올바른 선택이 아닙니다. 다시 선택하세요.\n");
+            break;
     }
+}
+
 
     return 0;
 }
 
-void startGame(int client_socket) {
+void startGame_sv(int client_socket) {
     
     // 클라이언트 게임 시작 메세지 전달
     recv(client_socket, players[numPlayers].name, sizeof(players[numPlayers].name), 0);
@@ -109,13 +109,13 @@ void startGame(int client_socket) {
     randValues[0] = rand() % 10;
     randValues[1] = rand() % 10;
     randValues[2] = rand() % 10;
-    
+    printf("[Server] 숫자야구 - 정답은 %d %d %d \n",randValues[0],randValues[1],randValues[2]);
     // 서버에 값 전달
     send(client_socket, randValues, sizeof(randValues), 0);
 
     // 게임 로직 구현
     int attempts;
-
+    
     for (attempts = 1; attempts <= 10; attempts++) {
         int strike = 0;
         int ball = 0;
@@ -151,10 +151,11 @@ void startGame(int client_socket) {
             break;
         } 
     }
+        
 }   
        
 
-void displayRecords(int client_socket) {
+void displayRecords_sv(int client_socket) {
     // 서버에서 플레이어 기록 받음
     int minAttempts = players[0].attempts;
     int totalAttempts = 0;
@@ -179,27 +180,28 @@ void displayRecords(int client_socket) {
    
     send(client_socket, &minAttempts, sizeof(int), 0);
     send(client_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
-
+    printf("\n");
     printf("BEST 플레이어 / 횟수 : %s / %d\n", minAttemptsPlayer, minAttempts);
     printf("--------------------\n");
 
     float averageAttempts;
     send(client_socket, &averageAttempts, sizeof(float), 0);
-
+    printf("\n");
     printf("평균 시도 횟수: %.2f\n", averageAttempts);
 
 }
 
-void SearchMyRecord(int client_socket) {
+void SearchMyRecord_sv(int client_socket) {
     // 클라이언트에게 찾을 플레이어 이름 요청
     char searchName[20];
     recv(client_socket, searchName, sizeof(searchName), 0);
 
     int found = 0;
-
+    printf("\n");
     for (int i = 0; i < numPlayers; i++) {
         if (strcmp(players[i].name, searchName) == 0) {
             // 찾은 플레이어 정보 전송
+            printf("[Client] 요청한 인물의 이름 : %s / 점수 : %d\n",players[i].name,players[i].attempts);
             send(client_socket, &players[i], sizeof(struct Player), 0);
             found = 1;
             break;
@@ -208,13 +210,14 @@ void SearchMyRecord(int client_socket) {
 
     if (!found) {
         // 플레이어를 찾지 못한 경우
+        printf("\n");
         struct Player notFoundPlayer;
-        strcpy(notFoundPlayer.name, "Not Found");
+        strcpy(notFoundPlayer.name, "찾는 플레이어가 없습니다.");
         send(client_socket, &notFoundPlayer, sizeof(struct Player), 0);
     }
 }
 
-void closeConnection(int server_socket, int client_socket) {
+void closeConnection_sv(int server_socket, int client_socket) {
     // 클라이언트와의 연결 종료
     close(client_socket);
 

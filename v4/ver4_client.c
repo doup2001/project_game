@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-#define PORT 12345
+#define PORT 12346
 #define MAX_PLAYERS 10
 
 struct Player {
@@ -16,10 +16,10 @@ struct Player players[MAX_PLAYERS];  // 플레이어 정보 배열
 int numPlayers = 0;  // 현재까지의 플레이어 수
 
 
-void displayMenu();
-void startGame(int server_socket);
-void displayRecords(int server_socket);
-void SearchMyRecord(int server_socket);
+void displayMenu_cl();
+void startGame_cl(int server_socket);
+void displayRecords_cl(int server_socket);
+void SearchMyRecord_cl(int server_socket);
 
 int main() {
     int server_socket;
@@ -46,37 +46,38 @@ int main() {
 
     int choice;
 
-    while (1) {
-        displayMenu();
-        printf("값을 입력하세요: ");
-        scanf("%d", &choice);
+while (1) {
+    displayMenu_cl();
+    printf("값을 입력하세요: ");
+    scanf("%d", &choice);
 
-        // 서버에 선택한 메뉴 전송
-        send(server_socket, &choice, sizeof(int), 0);
+    // 서버에 선택한 메뉴 전송
+    send(server_socket, &choice, sizeof(int), 0);
 
-        switch (choice) {
-            case 1:
-                startGame(server_socket);
-                break;
-            case 2:
-                displayRecords(server_socket);
-                break;
-            case 3:
-                SearchMyRecord(server_socket);
-                break;
-            case 4:
-                close(server_socket);
-                exit(0);
-            default:
-                printf("올바른 선택이 아닙니다. 다시 선택하세요.\n");
-                break;
-        }
+    switch (choice) {
+        case 1:
+            startGame_cl(server_socket);
+            break;
+        case 2:
+            displayRecords_cl(server_socket);
+            break;
+        case 3:
+            SearchMyRecord_cl(server_socket);
+            break;
+        case 4:
+            close(server_socket);
+            exit(0);
+        default:
+            printf("올바른 선택이 아닙니다. 다시 선택하세요.\n");
+            break;
     }
+}
+
 
     return 0;
 }
 
-void displayMenu() {
+void displayMenu_cl() {
     printf("\n");
     printf("메뉴를 선택하세요:\n");
     printf("1. 게임 시작\n");
@@ -85,9 +86,8 @@ void displayMenu() {
     printf("4. 게임 종료\n");
 }
 
-void startGame(int server_socket) {
-
-    
+void startGame_cl(int server_socket) {
+    // 콘솔 창 새로
     system("clear");
 
     // 닉네임 입력
@@ -118,6 +118,8 @@ void startGame(int server_socket) {
 
     for (attempts = 1; attempts <= 10; attempts++) {
         printf("%d 번째 시도 - 값 입력 (또는 'exit' 입력하여 종료): ", attempts);
+        fflush(stdout);
+
 
         // 사용자 입력 받기
         int u1, u2, u3;
@@ -143,9 +145,12 @@ void startGame(int server_socket) {
         }
         
     }
+
+    system("clear");
 }
 
-void displayRecords(int server_socket) {
+void displayRecords_cl(int server_socket) {
+    
     // 서버에서 플레이어 기록 받음
     struct Player players[MAX_PLAYERS];
     recv(server_socket, players, sizeof(players), 0);
@@ -157,6 +162,7 @@ void displayRecords(int server_socket) {
     recv(server_socket, &minAttempts, sizeof(int), 0);
     recv(server_socket, minAttemptsPlayer, sizeof(minAttemptsPlayer), 0);
 
+    printf("\n");
     printf("BEST 플레이어 / 횟수 : %s / %d\n", minAttemptsPlayer, minAttempts);
     printf("--------------------\n");
 
@@ -166,9 +172,12 @@ void displayRecords(int server_socket) {
     printf("평균 시도 횟수: %.2f\n", averageAttempts);
 }
 
-void SearchMyRecord(int server_socket) {
+void SearchMyRecord_cl(int server_socket) {
+    // 콘솔 창 새로
+
     // 사용자에게 찾을 플레이어 이름 입력 받음
     char searchName[20];
+    printf("\n");
     printf("찾고 싶은 플레이어의 이름을 입력하세요: ");
     scanf("%s", searchName);
 
@@ -178,7 +187,7 @@ void SearchMyRecord(int server_socket) {
     // 서버에서 플레이어 정보 받음
     struct Player searchResult;
     recv(server_socket, &searchResult, sizeof(struct Player), 0);
-
+    printf("\n");
     if (strcmp(searchResult.name, "Not Found") == 0) {
         printf("찾는 플레이어가 없습니다.\n");
     } else {

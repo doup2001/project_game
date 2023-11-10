@@ -118,6 +118,8 @@ void startGame() {
         players[numPlayers].attempts = 10;
         numPlayers++;  // 새 플레이어 추가
     }
+
+    printf("\n");
 }
 
 void close() {
@@ -162,6 +164,7 @@ void displayRecords() {
     // 평균 시도 횟수를 계산하고 출력합니다.
     float averageAttempts = (float)totalAttempts / numPlayers;
     printf("평균 시도 횟수: %.2f\n", averageAttempts);
+    printf("\n");
 }
 
 void SearchMyRecord() {
