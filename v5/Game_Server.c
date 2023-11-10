@@ -149,9 +149,6 @@ void startGame_sv(int client_socket) {
         // 서버에 결과과정 저장
         printf("[Client] %d번째 시도 - %dS %dB\n", attempts,strike, ball);
         
-        // 정답문구 제작
-        char correct_message[100] = "축하합니다! 정답을 맞추셨습니다.";
-
         if (strike == 3) {
             printf("[Client] 정답\n");
             players[numPlayers].attempts = attempts;
